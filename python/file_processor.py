@@ -16,6 +16,7 @@ from typing import Tuple, Optional
 from dataclasses import dataclass
 
 from fluctuation import FluctuationEngine, FluctuationConfig, add_background_noise
+from rvc_engine import RVCEngine, RVCConfig
 
 
 @dataclass
@@ -39,7 +40,10 @@ class ProcessConfig:
     noise_level: float = 0.02
 
     # ピッチシフト（手動調整）
-    pitch_shift: float = 0.0  # セント単位（+3% ≈ +50cent）
+    pitch_shift: int = 0  # 半音単位
+
+    # RVCモデル設定
+    rvc_model_path: str = "models/default/model.pth"
 
 
 class AudioFileProcessor:
@@ -48,10 +52,19 @@ class AudioFileProcessor:
     def __init__(self, config: ProcessConfig):
         self.config = config
         self.fluctuation_engine = None
+        self.rvc_engine = None
 
+        # 揺らぎエンジン初期化
         if config.enable_fluctuation:
             fluct_config = config.fluctuation_config or FluctuationConfig()
             self.fluctuation_engine = FluctuationEngine(fluct_config)
+
+        # RVCエンジン初期化
+        rvc_config = RVCConfig(
+            model_path=config.rvc_model_path,
+            f0_up_key=config.pitch_shift
+        )
+        self.rvc_engine = RVCEngine(rvc_config)
 
     def load_audio(self) -> Tuple[np.ndarray, int]:
         """音声ファイルを読み込む"""
@@ -69,14 +82,12 @@ class AudioFileProcessor:
         return audio, sr
 
     def apply_rvc_conversion(self, audio: np.ndarray, sr: int) -> np.ndarray:
-        """RVC変換を適用
+        """RVC変換を適用"""
+        if not self.rvc_engine:
+            print("  [RVC] エンジン未初期化")
+            return audio
 
-        注：この段階ではプレースホルダー
-        実際のRVCモデルは別途実装
-        """
-        # TODO: RVCモデルでの変換
-        print("  [RVC] 変換をスキップ（未実装）")
-        return audio
+        return self.rvc_engine.convert(audio, sr)
 
     def apply_fluctuations(self, audio: np.ndarray, sr: int) -> np.ndarray:
         """揺らぎを適用"""

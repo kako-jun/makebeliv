@@ -30,45 +30,52 @@
 
 ## 🚀 クイックスタート
 
-### 1. セットアップ
+### オプション1: ローカル実行（推奨）
 
 ```bash
-# Rustプロジェクトをビルド
+# 1. セットアップスクリプトを実行（uvを使用）
+./scripts/setup.sh
+
+# 2. Rustバイナリをビルド
 cargo build --release
 
-# Python環境を自動構築（uvを使用）
-./target/release/makebeliv setup
+# 3. APIサーバーを起動
+./target/release/makebeliv server
+
+# 4. 別のターミナルで音声処理を実行
+./target/release/makebeliv process -i audio/input/test.wav --use-api
 ```
 
-### 2. テスト実行（ファイルベース）
+### オプション2: Docker実行
 
 ```bash
-# テスト用音声ファイルを配置
-cp your_voice.wav audio/input/test.wav
+# GPU版（NVIDIA GPU環境）
+./scripts/docker-run.sh build
+./scripts/docker-run.sh gpu
 
-# 音声変換を実行
-./target/release/makebeliv process -i audio/input/test.wav
+# CPU版
+./scripts/docker-run.sh cpu
+
+# 音声処理（ローカルから）
+makebeliv process -i audio/input/test.wav --use-api --api-url http://localhost:8000
 ```
 
-### 3. リアルタイムモード（開発中）
-
-```bash
-makebeliv monitor --model vtuber1 --noise cafe --pitch +3
-```
+詳細は [DOCKER.md](./DOCKER.md) を参照してください。
 
 ## 📦 技術スタック
 
 ### Python側
 - **RVC (Retrieval-based Voice Conversion)** - 高品質な声変換
-- **PyTorch** - GPU推論
-- **librosa / scipy** - 音声処理
-- **FastAPI** - HTTPサーバー（将来）
+- **PyTorch** - GPU推論（CUDA 11.8対応）
+- **librosa / scipy** - 音声処理・ピッチ抽出
+- **FastAPI + Uvicorn** - 非同期HTTPサーバー
+- **uv** - 高速パッケージマネージャー
 
 ### Rust側
 - **clap** - CLIインターフェース
-- **cpal / rodio** - 低レイテンシ音声I/O（将来）
-- **tokio** - 非同期処理
-- **uv統合** - Python環境の自動構築
+- **cpal** - 低レイテンシ音声I/O
+- **tokio + reqwest** - 非同期HTTP通信
+- **hound** - WAVファイル処理
 
 ## 🎨 オリジナリティ
 
@@ -89,19 +96,28 @@ makebeliv monitor --model vtuber1 --noise cafe --pitch +3
 
 ```
 makebeliv/
-├── src/                   # Rustソースコード
-│   └── main.rs           # CLIエントリーポイント
-├── python/               # Pythonモジュール
-│   ├── fluctuation.py    # 揺らぎエンジン
-│   ├── file_processor.py # ファイルベース処理
-│   └── rvc_engine.py     # RVC変換（TODO）
-├── audio/                # 音声ファイル
-│   ├── input/           # 入力音声
-│   └── output/          # 処理済み音声
-├── models/              # RVCモデル
-├── Cargo.toml           # Rust依存関係
-├── pyproject.toml       # Python環境設定
-└── requirements.txt     # Python依存関係
+├── src/                     # Rustソースコード
+│   ├── main.rs             # CLIエントリーポイント
+│   ├── audio.rs            # 音声I/O（cpal）
+│   ├── client.rs           # HTTPクライアント
+│   └── lib.rs              # ライブラリルート
+├── python/                 # Pythonモジュール
+│   ├── fluctuation.py      # 揺らぎエンジン
+│   ├── file_processor.py   # ファイルベース処理
+│   ├── rvc_engine.py       # RVC変換エンジン
+│   └── api_server.py       # FastAPIサーバー
+├── scripts/                # ユーティリティスクリプト
+│   ├── setup.sh           # セットアップ（uv使用）
+│   ├── test.sh            # テスト実行
+│   └── docker-run.sh      # Docker管理
+├── audio/                  # 音声ファイル
+├── models/                 # RVCモデル
+├── Dockerfile              # GPU版イメージ
+├── Dockerfile.cpu          # CPU版イメージ
+├── docker-compose.yml      # Docker構成
+├── Cargo.toml              # Rust依存関係
+├── pyproject.toml          # Python環境設定
+└── requirements.txt        # Python依存関係
 ```
 
 ## 🧪 開発ステータス
@@ -110,11 +126,15 @@ makebeliv/
 - [x] Python環境自動構築（uv統合）
 - [x] 揺らぎエンジン基本実装
 - [x] ファイルベース処理フロー
-- [ ] RVC変換統合
-- [ ] HTTPサーバー実装
-- [ ] Rust音声I/O実装
-- [ ] 仮想マイク出力対応
-- [ ] リアルタイムモード実装
+- [x] RVC変換エンジン実装
+- [x] FastAPI HTTPサーバー実装
+- [x] Rust HTTPクライアント実装
+- [x] Rust音声I/O実装（cpal）
+- [x] Docker対応（GPU/CPU両対応）
+- [ ] リアルタイムモード完全実装
+- [ ] 仮想マイク出力統合
+- [ ] 遅延測定・最適化
+- [ ] 実際のRVCモデル統合
 
 ## 🔧 要件
 
@@ -130,14 +150,41 @@ makebeliv/
 ## 📖 コマンドリファレンス
 
 ```bash
-# セットアップ
+# セットアップ（uv使用）
 makebeliv setup [--yes]
 
-# ファイル処理
+# APIサーバー起動
+makebeliv server [--host 0.0.0.0] [--port 8000]
+
+# ファイル処理（直接実行）
 makebeliv process -i <input> [-o <output>] [--model <model>] [--noise <type>] [--pitch <shift>]
 
-# リアルタイム変換（開発中）
-makebeliv monitor --model <model> --noise <type> --pitch <shift>
+# ファイル処理（API経由）
+makebeliv process -i <input> --use-api [--api-url http://localhost:8000]
+
+# リアルタイム変換
+makebeliv monitor --model <model> --noise <type> --pitch <shift> [--api-url http://localhost:8000]
+
+# オーディオデバイス一覧
+makebeliv list-devices
+```
+
+### uvを直接使用
+
+```bash
+# Python環境セットアップ
+uv venv .venv
+source .venv/bin/activate  # Linux/macOS
+.venv\Scripts\activate     # Windows
+
+# 依存関係インストール
+uv pip install -r requirements.txt
+
+# APIサーバー起動
+uv run uvicorn python.api_server:app --reload
+
+# Pythonスクリプト実行
+uv run python python/file_processor.py audio/input/test.wav
 ```
 
 ## 🤝 コントリビューション
