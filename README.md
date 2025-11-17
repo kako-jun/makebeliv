@@ -187,6 +187,16 @@ uv run uvicorn python.api_server:app --reload
 uv run python python/file_processor.py audio/input/test.wav
 ```
 
+## 📚 プロジェクトドキュメント
+
+詳細なプロジェクト管理ドキュメントは `.claude/` ディレクトリにあります：
+
+- **[CLAUDE.md](./.claude/CLAUDE.md)** - プロジェクト概要・構想・マイルストーン
+- **[ARCHITECTURE.md](./.claude/ARCHITECTURE.md)** - システムアーキテクチャ詳細
+- **[DESIGN.md](./.claude/DESIGN.md)** - 設計詳細・実装ガイド
+- **[DECISIONS.md](./.claude/DECISIONS.md)** - 設計決定記録 (ADR)
+- **[TODO.md](./.claude/TODO.md)** - タスク管理・進捗状況
+
 ## 🤝 コントリビューション
 
 プロジェクトは開発初期段階です。以下の領域で貢献を歓迎します：
@@ -195,6 +205,8 @@ uv run python python/file_processor.py audio/input/test.wav
 - 揺らぎアルゴリズムの改良
 - 遅延削減のための技術検証
 - クロスプラットフォーム対応の強化
+
+**開発に参加する前に**: [.claude/CLAUDE.md](./.claude/CLAUDE.md) でプロジェクトの全体像を把握してください。
 
 ## 📄 ライセンス
 
