@@ -1,0 +1,27 @@
+[package]
+name = "makebeliv"
+version = "0.1.0"
+edition = "2021"
+authors = ["makebeliv contributors"]
+description = "Real-time voice conversion with natural fluctuation engine"
+license = "MIT"
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+tokio = { version = "1.35", features = ["full"] }
+reqwest = { version = "0.11", features = ["json", "stream", "multipart"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+bytes = "1.5"
+
+# Audio processing
+cpal = "0.15"
+hound = "3.5"  # WAVファイル読み書き
+
+# Optional: 仮想マイク対応（将来）
+# rodio = "0.17"
+
+[dev-dependencies]

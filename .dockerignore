@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+.venv
+venv
+*.egg-info
+
+# Rust
+target/
+Cargo.lock
+
+# Audio files
+audio/input/*
+audio/output/*
+
+# Models (大きいファイルは除外)
+models/*
+
+# IDEs
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs
+*.md
+!README.md
+
+# Docker
+Dockerfile*
+docker-compose.yml
+.dockerignore

@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Rust
+/target/
+Cargo.lock
+**/*.rs.bk
+
+# Audio files (except examples)
+audio/input/*
+audio/output/*
+!audio/input/.gitkeep
+!audio/output/.gitkeep
+
+# Models
+models/*
+!models/.gitkeep
+!models/README.md
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
